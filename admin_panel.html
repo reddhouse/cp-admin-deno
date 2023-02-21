@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>CPAdmin</title>
+  <!--
+    Note: Not suitable for production. This app slowly compiles JSX with Babel 
+    in the browser and uses a large development build of React.
+  -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+
+    const App = () => {
+      const [isFetching, setIsFetching] = React.useState(false)
+      const [data, setData] = React.useState({})
+
+      React.useEffect(() => {
+        if (!isFetching) {
+          return
+        }
+        const goFetch = async () => {
+          let responseBody = {}
+          try {
+            const responseStream = await fetch(`http://localhost:8080`)
+            responseBody = await responseStream.json()
+          } catch (error) {
+            console.log("There was a problem fetching", error)
+          }
+          setData(responseBody)
+          setIsFetching(false)
+        }
+        goFetch()
+      }, [isFetching])
+
+      const handleClick = (e) => {
+        e.preventDefault()
+        setIsFetching(true)
+      }
+
+      return (
+        <div>
+          <h4>Cooperative.party Admin Panel</h4>
+          <a href="#" onClick={handleClick}>Get User Agent Info</a>
+          <div>
+            {isFetching
+              ? "Fetching..."
+              : null
+            }
+          </div>  
+          <div>Response: {data.message}</div>
+          <br />
+        </div>
+      )
+    }
+
+    const domContainer = document.getElementById('root')
+    const root = ReactDOM.createRoot(domContainer)
+    
+    root.render(<App />)
+
+  </script>
+</body>
+
+</html>

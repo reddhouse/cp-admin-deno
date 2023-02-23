@@ -1,8 +1,8 @@
 // Run this script with: deno run --allow-net webserver.ts
 
-// Start listening on port 8080 of localhost.
-const server = Deno.listen({ port: 8080 });
-console.log(`HTTP webserver running.  Access it at:  http://localhost:8080/`);
+// Start listening on port 8000 of localhost.
+const server = Deno.listen({ port: 8000 });
+console.log(`HTTP webserver running.  Access it at:  http://localhost:8000/`);
 
 // Connections to the server will be yielded up as an async iterable.
 for await (const conn of server) {
@@ -25,6 +25,10 @@ async function serveHttp(conn: Deno.Conn) {
       )} \n`,
       requestEvent.request
     );
+
+    const result = await requestEvent.request.text();
+    console.log("TEMP: ", result);
+
     const body = JSON.stringify({
       message: `Message from server: Your user-agent is:\n\n${
         requestEvent.request.headers.get("user-agent") ?? "Unknown"
@@ -34,8 +38,10 @@ async function serveHttp(conn: Deno.Conn) {
     const response = new Response(body, {
       status: 200,
       headers: {
-        "content-type": "application/json",
-        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "http://localhost:8080",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "POST",
       },
     });
 

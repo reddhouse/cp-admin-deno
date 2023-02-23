@@ -17,7 +17,40 @@
   <div id="root"></div>
   <script type="text/babel">
 
+    const FetchStatus = ({ isFetching }) => (
+      <div>
+        {isFetching
+          ? "Fetching..."
+          : null
+        }
+      </div>  
+    )
+
+    const UserAgent = ({ topic, setTopic, isFetching, setIsFetching, data }) => {
+      const [response, setResponse] = React.useState("")
+      const handleClick = (e) => {
+        e.preventDefault()
+        setTopic("USER_AGENT")
+        setIsFetching(true)
+      }
+      React.useEffect(() => {
+        if (topic === "USER_AGENT") {
+          setResponse (data.message)
+        }
+      }, [data])
+      return (
+        <div>
+          <a href="#" onClick={handleClick}
+          >Get User Agent Info</a>
+          <FetchStatus isFetching={isFetching}/>
+          <div>Response: {response}</div>
+          <br />
+        </div>  
+      )
+    }
+
     const App = () => {
+      const [topic, setTopic] = React.useState("")
       const [isFetching, setIsFetching] = React.useState(false)
       const [data, setData] = React.useState({})
 
@@ -28,10 +61,17 @@
         const goFetch = async () => {
           let responseBody = {}
           try {
-            const responseStream = await fetch(`http://localhost:8080`)
+            const responseStream = await fetch(`http://localhost:8000`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ topic: topic })
+            })
             responseBody = await responseStream.json()
+            console.log(responseBody)
           } catch (error) {
-            console.log("There was a problem fetching", error)
+            console.log("CPKE There was a problem fetching or parsing response body: ", error)
           }
           setData(responseBody)
           setIsFetching(false)
@@ -39,23 +79,10 @@
         goFetch()
       }, [isFetching])
 
-      const handleClick = (e) => {
-        e.preventDefault()
-        setIsFetching(true)
-      }
-
       return (
         <div>
           <h4>Cooperative.party Admin Panel</h4>
-          <a href="#" onClick={handleClick}>Get User Agent Info</a>
-          <div>
-            {isFetching
-              ? "Fetching..."
-              : null
-            }
-          </div>  
-          <div>Response: {data.message}</div>
-          <br />
+          <UserAgent topic={topic} setTopic={setTopic} isFetching={isFetching} setIsFetching={setIsFetching} data={data}/>
         </div>
       )
     }

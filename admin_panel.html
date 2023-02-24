@@ -26,15 +26,16 @@
       </div>  
     )
 
-    const UserAgent = ({ topic, setTopic, isFetching, setIsFetching, data }) => {
+    const UserAgent = ({ globalTopic, setGlobalTopic, isFetching, setIsFetching, data }) => {
       const [response, setResponse] = React.useState("")
+      const localTopic = "USER_AGENT"
       const handleClick = (e) => {
         e.preventDefault()
-        setTopic("USER_AGENT")
+        setGlobalTopic(localTopic)
         setIsFetching(true)
       }
       React.useEffect(() => {
-        if (topic === "USER_AGENT") {
+        if (globalTopic === localTopic) {
           setResponse (data.message)
         }
       }, [data])
@@ -49,8 +50,32 @@
       )
     }
 
+    const FooBar = ({ globalTopic, setGlobalTopic, isFetching, setIsFetching, data }) => {
+      const [response, setResponse] = React.useState("")
+      const localTopic = "FOO_BAR"
+      const handleClick = (e) => {
+        e.preventDefault()
+        setGlobalTopic(localTopic)
+        setIsFetching(true)
+      }
+      React.useEffect(() => {
+        if (globalTopic === localTopic) {
+          setResponse (data.message)
+        }
+      }, [data])
+      return (
+        <div>
+          <a href="#" onClick={handleClick}
+          >Do Foo Bar Thing</a>
+          <FetchStatus isFetching={isFetching}/>
+          <div>Response: {response}</div>
+          <br />
+        </div>  
+      )
+    }
+
     const App = () => {
-      const [topic, setTopic] = React.useState("")
+      const [globalTopic, setGlobalTopic] = React.useState("")
       const [isFetching, setIsFetching] = React.useState(false)
       const [data, setData] = React.useState({})
 
@@ -66,12 +91,12 @@
               headers: {
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify({ topic: topic })
+              body: JSON.stringify({ topic: globalTopic })
             })
             responseBody = await responseStream.json()
-            console.log(responseBody)
           } catch (error) {
-            console.log("CPKE There was a problem fetching or parsing response body: ", error)
+            console.log("There was a problem fetching or parsing response body (CPKE).")
+            console.log(error)
           }
           setData(responseBody)
           setIsFetching(false)
@@ -82,7 +107,8 @@
       return (
         <div>
           <h4>Cooperative.party Admin Panel</h4>
-          <UserAgent topic={topic} setTopic={setTopic} isFetching={isFetching} setIsFetching={setIsFetching} data={data}/>
+          <UserAgent globalTopic={globalTopic} setGlobalTopic={setGlobalTopic} isFetching={isFetching} setIsFetching={setIsFetching} data={data}/>
+          <FooBar globalTopic={globalTopic} setGlobalTopic={setGlobalTopic} isFetching={isFetching} setIsFetching={setIsFetching} data={data}/>
         </div>
       )
     }

@@ -1,52 +1,50 @@
 // Run this script with: deno run --allow-net webserver.ts
 
-// Start listening on port 8000 of localhost.
-const server = Deno.listen({ port: 8000 });
-console.log(`HTTP webserver running.  Access it at:  http://localhost:8000/`);
+// Serve a handler function that will be called for each incoming request, and
+// return a response (or a promise resolving to a response).
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
-// Connections to the server will be yielded up as an async iterable.
-for await (const conn of server) {
-  // In order to not be blocking, we need to handle each connection individually
-  // without awaiting the function
-  serveHttp(conn);
-}
-
-async function serveHttp(conn: Deno.Conn) {
-  // This "upgrades" a network connection into an HTTP connection.
-  const httpConn = Deno.serveHttp(conn);
-  // Each request sent over the HTTP connection will be yielded as an async
-  // iterator from the HTTP connection.
-  for await (const requestEvent of httpConn) {
-    // The native HTTP server uses the web standard `Request` and `Response`
-    // objects.
-    console.log(
-      `Incoming request at ${new Date(Date.now()).toLocaleTimeString(
-        "en-US"
-      )} \n`,
-      requestEvent.request
-    );
-
-    const result = await requestEvent.request.text();
-    console.log("TEMP: ", result);
-
-    const body = JSON.stringify({
-      message: `Message from server: Your user-agent is:\n\n${
-        requestEvent.request.headers.get("user-agent") ?? "Unknown"
-      }`,
-    });
-
-    const response = new Response(body, {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "http://localhost:8080",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Methods": "POST",
-      },
-    });
-
-    // The requestEvent's `.respondWith()` method is how we send the response
-    // back to the client.
-    requestEvent.respondWith(response);
+const doServerStuff = (req: Request, topic: string) => {
+  switch (topic) {
+    case "USER_AGENT":
+      return JSON.stringify({
+        message: `Your user-agent is:\n\n${
+          req.headers.get("user-agent") ?? "Unknown"
+        }`,
+      });
+    case "FOO_BAR":
+      return JSON.stringify({ message: "FooBar thing is complete." });
+    default:
+      throw new Error(`Unknown topic: ${topic} (CPKE).`);
   }
-}
+};
+
+const handler = async (req: Request): Promise<Response> => {
+  const ts = new Date(Date.now()).toLocaleTimeString("en-US");
+
+  if (req.method === "OPTIONS") {
+    console.log(`${req.method} request at ${ts}`);
+  }
+
+  let responseBody;
+
+  if (req.method === "POST") {
+    const requestBody = await req.json();
+    const topic = requestBody.topic;
+    console.log(`${req.method} request at ${ts} - Topic: ${topic}`);
+    responseBody = doServerStuff(req, topic);
+  }
+
+  return new Response(responseBody, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "http://localhost:8080",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "POST",
+    },
+  });
+};
+
+// Serve will listen on port 8000 by default if second arg is absent.
+serve(handler, { port: 8000 });

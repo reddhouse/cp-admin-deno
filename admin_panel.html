@@ -43,7 +43,7 @@
         <div>
           <a href="#" onClick={handleClick}
           >Get User Agent Info</a>
-          <FetchStatus isFetching={isFetching}/>
+          {globalTopic === localTopic && <FetchStatus isFetching={isFetching}/>}
           <div>Response: {response}</div>
           <br />
         </div>  
@@ -67,7 +67,31 @@
         <div>
           <a href="#" onClick={handleClick}
           >Do Foo Bar Thing</a>
-          <FetchStatus isFetching={isFetching}/>
+          {globalTopic === localTopic && <FetchStatus isFetching={isFetching}/>}
+          <div>Response: {response}</div>
+          <br />
+        </div>  
+      )
+    }
+
+    const BrewList = ({ globalTopic, setGlobalTopic, isFetching, setIsFetching, data }) => {
+      const [response, setResponse] = React.useState("")
+      const localTopic = "BREW_LIST"
+      const handleClick = (e) => {
+        e.preventDefault()
+        setGlobalTopic(localTopic)
+        setIsFetching(true)
+      }
+      React.useEffect(() => {
+        if (globalTopic === localTopic) {
+          setResponse (data.message)
+        }
+      }, [data])
+      return (
+        <div>
+          <a href="#" onClick={handleClick}
+          >List Brew Formulae</a>
+          {globalTopic === localTopic && <FetchStatus isFetching={isFetching}/>}
           <div>Response: {response}</div>
           <br />
         </div>  
@@ -109,6 +133,7 @@
           <h4>Cooperative.party Admin Panel</h4>
           <UserAgent globalTopic={globalTopic} setGlobalTopic={setGlobalTopic} isFetching={isFetching} setIsFetching={setIsFetching} data={data}/>
           <FooBar globalTopic={globalTopic} setGlobalTopic={setGlobalTopic} isFetching={isFetching} setIsFetching={setIsFetching} data={data}/>
+          <BrewList globalTopic={globalTopic} setGlobalTopic={setGlobalTopic} isFetching={isFetching} setIsFetching={setIsFetching} data={data}/>
         </div>
       )
     }

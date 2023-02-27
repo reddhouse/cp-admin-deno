@@ -1,22 +1,51 @@
-// Run this script with: deno run --allow-net webserver.ts
+// Run this script with: deno run --allow-run --allow-net webserver.ts
 
 // Serve a handler function that will be called for each incoming request, and
 // return a response (or a promise resolving to a response).
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
-const doServerStuff = (req: Request, topic: string) => {
+const listBrewFormulae = async () => {
+  const p = Deno.run({
+    cmd: ["brew", "list"],
+    stdout: "piped",
+    stderr: "piped",
+  });
+
+  const { code } = await p.status();
+
+  // Reading the outputs closes these pipes.
+  const rawOutput = await p.output();
+  const rawError = await p.stderrOutput();
+
+  if (code === 0) {
+    const successString = new TextDecoder().decode(rawOutput);
+    return successString;
+  } else {
+    const errorString = new TextDecoder().decode(rawError);
+    return errorString;
+  }
+};
+
+const doServerStuff = async (req: Request, topic: string) => {
+  let reply;
   switch (topic) {
     case "USER_AGENT":
-      return JSON.stringify({
-        message: `Your user-agent is:\n\n${
-          req.headers.get("user-agent") ?? "Unknown"
-        }`,
-      });
+      reply = `Your user-agent is:\n\n${
+        req.headers.get("user-agent") ?? "Unknown"
+      }`;
+      break;
     case "FOO_BAR":
-      return JSON.stringify({ message: "FooBar thing is complete." });
+      reply = "FooBar thing is complete.";
+      break;
+    case "BREW_LIST": {
+      reply = await listBrewFormulae();
+      break;
+    }
     default:
       throw new Error(`Unknown topic: ${topic} (CPKE).`);
   }
+
+  return JSON.stringify({ message: reply });
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -32,7 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
     const requestBody = await req.json();
     const topic = requestBody.topic;
     console.log(`${req.method} request at ${ts} - Topic: ${topic}`);
-    responseBody = doServerStuff(req, topic);
+    responseBody = await doServerStuff(req, topic);
   }
 
   return new Response(responseBody, {

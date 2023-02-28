@@ -4,9 +4,9 @@
 // return a response (or a promise resolving to a response).
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
-const listBrewFormulae = async () => {
+const listTerraformCommands = async () => {
   const p = Deno.run({
-    cmd: ["brew", "list"],
+    cmd: ["terraform", "-help"],
     stdout: "piped",
     stderr: "piped",
   });
@@ -37,8 +37,8 @@ const doServerStuff = async (req: Request, topic: string) => {
     case "FOO_BAR":
       reply = "FooBar thing is complete.";
       break;
-    case "BREW_LIST": {
-      reply = await listBrewFormulae();
+    case "TERRAFORM_HELP": {
+      reply = await listTerraformCommands();
       break;
     }
     default:

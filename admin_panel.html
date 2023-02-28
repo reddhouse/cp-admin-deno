@@ -26,9 +26,8 @@
       </div>  
     )
 
-    const UserAgent = ({ globalTopic, setGlobalTopic, isFetching, setIsFetching, data }) => {
+    const ClickableAction = ({ linkText, localTopic, globalTopic, setGlobalTopic, isFetching, setIsFetching, data }) => {
       const [response, setResponse] = React.useState("")
-      const localTopic = "USER_AGENT"
       const handleClick = (e) => {
         e.preventDefault()
         setGlobalTopic(localTopic)
@@ -42,57 +41,9 @@
       return (
         <div>
           <a href="#" onClick={handleClick}
-          >Get User Agent Info</a>
+          >{linkText}</a>
           {globalTopic === localTopic && <FetchStatus isFetching={isFetching}/>}
-          <div>Response: {response}</div>
-          <br />
-        </div>  
-      )
-    }
-
-    const FooBar = ({ globalTopic, setGlobalTopic, isFetching, setIsFetching, data }) => {
-      const [response, setResponse] = React.useState("")
-      const localTopic = "FOO_BAR"
-      const handleClick = (e) => {
-        e.preventDefault()
-        setGlobalTopic(localTopic)
-        setIsFetching(true)
-      }
-      React.useEffect(() => {
-        if (globalTopic === localTopic) {
-          setResponse (data.message)
-        }
-      }, [data])
-      return (
-        <div>
-          <a href="#" onClick={handleClick}
-          >Do Foo Bar Thing</a>
-          {globalTopic === localTopic && <FetchStatus isFetching={isFetching}/>}
-          <div>Response: {response}</div>
-          <br />
-        </div>  
-      )
-    }
-
-    const BrewList = ({ globalTopic, setGlobalTopic, isFetching, setIsFetching, data }) => {
-      const [response, setResponse] = React.useState("")
-      const localTopic = "BREW_LIST"
-      const handleClick = (e) => {
-        e.preventDefault()
-        setGlobalTopic(localTopic)
-        setIsFetching(true)
-      }
-      React.useEffect(() => {
-        if (globalTopic === localTopic) {
-          setResponse (data.message)
-        }
-      }, [data])
-      return (
-        <div>
-          <a href="#" onClick={handleClick}
-          >List Brew Formulae</a>
-          {globalTopic === localTopic && <FetchStatus isFetching={isFetching}/>}
-          <div>Response: {response}</div>
+          <pre>{response}</pre>
           <br />
         </div>  
       )
@@ -131,9 +82,34 @@
       return (
         <div>
           <h4>Cooperative.party Admin Panel</h4>
-          <UserAgent globalTopic={globalTopic} setGlobalTopic={setGlobalTopic} isFetching={isFetching} setIsFetching={setIsFetching} data={data}/>
-          <FooBar globalTopic={globalTopic} setGlobalTopic={setGlobalTopic} isFetching={isFetching} setIsFetching={setIsFetching} data={data}/>
-          <BrewList globalTopic={globalTopic} setGlobalTopic={setGlobalTopic} isFetching={isFetching} setIsFetching={setIsFetching} data={data}/>
+          <ClickableAction 
+            linkText={"Get User Agent Info"}
+            localTopic={"USER_AGENT"}
+            globalTopic={globalTopic} 
+            setGlobalTopic={setGlobalTopic} 
+            isFetching={isFetching} 
+            setIsFetching={setIsFetching} 
+            data={data}
+          />
+          <ClickableAction 
+            linkText={"Do Foo Thing"}
+            localTopic={"FOO_BAR"}
+            globalTopic={globalTopic} 
+            setGlobalTopic={setGlobalTopic} 
+            isFetching={isFetching} 
+            setIsFetching={setIsFetching} 
+            data={data}
+          />
+          <ClickableAction 
+            linkText={"View Terraform Commands"}
+            localTopic={"TERRAFORM_HELP"}
+            globalTopic={globalTopic} 
+            setGlobalTopic={setGlobalTopic} 
+            isFetching={isFetching} 
+            setIsFetching={setIsFetching} 
+            data={data}
+          />
+ 
         </div>
       )
     }

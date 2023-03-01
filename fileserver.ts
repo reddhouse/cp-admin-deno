@@ -1,4 +1,5 @@
-// Run this script with: deno run --allow-net --allow-read fileserver.ts
+// Run this script with...
+// deno run --allow-net --allow-read fileserver.ts
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { contentType } from "https://deno.land/std@0.177.0/media_types/mod.ts";

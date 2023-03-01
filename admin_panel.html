@@ -21,7 +21,7 @@
       <div>
         {isFetching
           ? "Fetching..."
-          : null
+          : ""
         }
       </div>  
     )
@@ -44,7 +44,6 @@
           >{linkText}</a>
           {globalTopic === localTopic && <FetchStatus isFetching={isFetching}/>}
           <pre>{response}</pre>
-          <br />
         </div>  
       )
     }
@@ -83,8 +82,8 @@
         <div>
           <h4>Cooperative.party Admin Panel</h4>
           <ClickableAction 
-            linkText={"Get User Agent Info"}
-            localTopic={"USER_AGENT"}
+            linkText={"Terraform Init"}
+            localTopic={"TERRAFORM_INIT"}
             globalTopic={globalTopic} 
             setGlobalTopic={setGlobalTopic} 
             isFetching={isFetching} 
@@ -92,8 +91,8 @@
             data={data}
           />
           <ClickableAction 
-            linkText={"Do Foo Thing"}
-            localTopic={"FOO_BAR"}
+            linkText={"Terraform Format"}
+            localTopic={"TERRAFORM_FMT"}
             globalTopic={globalTopic} 
             setGlobalTopic={setGlobalTopic} 
             isFetching={isFetching} 
@@ -101,8 +100,35 @@
             data={data}
           />
           <ClickableAction 
-            linkText={"View Terraform Commands"}
-            localTopic={"TERRAFORM_HELP"}
+            linkText={"Terraform Validate"}
+            localTopic={"TERRAFORM_VALIDATE"}
+            globalTopic={globalTopic} 
+            setGlobalTopic={setGlobalTopic} 
+            isFetching={isFetching} 
+            setIsFetching={setIsFetching} 
+            data={data}
+          />
+          <ClickableAction 
+            linkText={"Terraform Plan"}
+            localTopic={"TERRAFORM_PLAN"}
+            globalTopic={globalTopic} 
+            setGlobalTopic={setGlobalTopic} 
+            isFetching={isFetching} 
+            setIsFetching={setIsFetching} 
+            data={data}
+          />
+          <ClickableAction 
+            linkText={"Terraform Apply"}
+            localTopic={"TERRAFORM_APPLY"}
+            globalTopic={globalTopic} 
+            setGlobalTopic={setGlobalTopic} 
+            isFetching={isFetching} 
+            setIsFetching={setIsFetching} 
+            data={data}
+          />
+          <ClickableAction 
+            linkText={"Terraform Destroy"}
+            localTopic={"TERRAFORM_DESTROY"}
             globalTopic={globalTopic} 
             setGlobalTopic={setGlobalTopic} 
             isFetching={isFetching} 

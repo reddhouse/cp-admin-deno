@@ -5,6 +5,40 @@
 // return a response (or a promise resolving to a response).
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import "https://deno.land/std@0.178.0/dotenv/load.ts";
+import { writeAllSync } from "https://deno.land/std@0.178.0/streams/write_all.ts";
+
+let p1: Deno.Process;
+
+const createLongLivedProcess = (commandList: string[]) => {
+  const p = Deno.run({
+    cmd: commandList,
+    stdin: "inherit",
+    stdout: "piped",
+    stderr: "piped",
+  });
+  console.log("Created", p);
+  return p;
+};
+
+const readStdoutAndKeepAlive = async (p: Deno.Process) => {
+  const decoder = new TextDecoder();
+  let response;
+  if (p.stdout) {
+    for await (const chunk of p.stdout.readable) {
+      writeAllSync(Deno.stdout, chunk);
+      response = response + decoder.decode(chunk);
+    }
+  }
+  console.log("Our response:\n", response);
+  return response;
+};
+
+const closeProcess = (p: Deno.Process) => {
+  if (p.stdin) p.stdin.close();
+  if (p.stdout) p.stdout.close();
+  if (p.stderr) p.stderr.close();
+  p.close();
+};
 
 const doProcessStuff = async (commandList: string[]) => {
   const p = Deno.run({
@@ -16,6 +50,30 @@ const doProcessStuff = async (commandList: string[]) => {
 
   // A subprocess that requires user input may hang. Close stdin to troubleshoot.
   // await p.stdin.close();
+
+  // Use newline at end of command
+  await p.stdin.write(new TextEncoder().encode("yes\n"));
+  await p.stdin.close();
+
+  // const buff = new Uint8Array(1);
+  // while (true) {
+  //   try {
+  //     const result = await p.stdout.read(buff);
+  //     if (!result) {
+  //       break;
+  //     }
+  //     if (result) {
+  //       response = response + decoder.decode(buff);
+  //     }
+  //   } catch (error) {
+  //     console.log("error", error);
+  //     break;
+  //   }
+  // }
+
+  // for await (const chunk of p.stdout.readable) {
+  //   writeAllSync(Deno.stdout, chunk);
+  // }
 
   const { code } = await p.status();
 
@@ -42,6 +100,7 @@ const doProcessStuff = async (commandList: string[]) => {
 
 const doServerStuff = async (req: Request, topic: string) => {
   let reply;
+
   switch (topic) {
     case "TERRAFORM_INIT": {
       reply = await doProcessStuff(["terraform", "init"]);
@@ -63,10 +122,28 @@ const doServerStuff = async (req: Request, topic: string) => {
       ]);
       break;
     }
+    // case "TERRAFORM_APPLY": {
+    //   reply = `Sorry, needs user input. Run the following command in the same directory as main.tf\nterraform apply -var='hcloud_token=${Deno.env.get(
+    //     "HETZNER_API_TOKEN"
+    //   )}'`;
+    //   break;
+    // }
+    // case "TERRAFORM_APPLY": {
+    //   reply = await doProcessStuff([
+    //     "terraform",
+    //     "apply",
+    //     `-var=hcloud_token=${Deno.env.get("HETZNER_API_TOKEN")}`,
+    //   ]);
+    //   break;
+    // }
     case "TERRAFORM_APPLY": {
-      reply = `Sorry, needs user input. Run the following command in the same directory as main.tf\nterraform apply -var='hcloud_token=${Deno.env.get(
-        "HETZNER_API_TOKEN"
-      )}'`;
+      p1 = createLongLivedProcess([
+        "terraform",
+        "apply",
+        `-var=hcloud_token=${Deno.env.get("HETZNER_API_TOKEN")}`,
+      ]);
+      reply = await readStdoutAndKeepAlive(p1);
+      closeProcess(p1);
       break;
     }
     case "TERRAFORM_DESTROY": {

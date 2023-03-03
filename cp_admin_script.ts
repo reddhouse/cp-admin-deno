@@ -12,7 +12,7 @@ const menu: { [key: string]: Command } = {
 };
 
 const handleAction = async (selection: string) => {
-  const p = Deno.run({ cmd: menu[selection].commands });
+  const p = Deno.run({ cwd: "./terraform", cmd: menu[selection].commands });
   const { code } = await p.status();
   console.log(`Process ${p.pid} exited with code ${code}.`);
 };
@@ -22,10 +22,15 @@ while (true) {
   for (const [key, value] of Object.entries(menu)) {
     console.log(`${key}: ${value.label}`);
   }
-  const selection = prompt("Select an action:", "0");
+
+  // Capture user input.
+  const selection = prompt("Select an action:", "0") || "0";
   if (selection == "0") {
     break;
   }
+
   // Do stuff based on selection.
-  await handleAction(selection ?? "0");
+  if (selection in menu) {
+    await handleAction(selection);
+  }
 }

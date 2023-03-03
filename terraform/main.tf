@@ -33,9 +33,6 @@ variable "disk_size" {
   default = "40"
 }
 
-variable "ip_range" {
-  default = "10.0.0.0/24"
-}
 
 ## Provider
 
@@ -61,11 +58,7 @@ resource "hcloud_server" "cp-server" {
   server_type = var.server_type
   location    = var.location
   ssh_keys    = [hcloud_ssh_key.jmt-mac-mini-key.id]
-  public_net {
-    ipv4_enabled = false
-    ipv6_enabled = true
-  }
-  user_data = file("user_data.yml")
+  user_data   = file("user_data.yml")
 }
 
 resource "hcloud_ssh_key" "jmt-mac-mini-key" {
@@ -73,9 +66,23 @@ resource "hcloud_ssh_key" "jmt-mac-mini-key" {
   public_key = file("~/.ssh/id_rsa.pub")
 }
 
-resource "hcloud_network" "cp-public-network" {
-  name     = "cp-public-network"
-  ip_range = var.ip_range
+resource "hcloud_network" "cp-network" {
+  name     = "cp-network"
+  ip_range = "10.0.0.0/8"
+}
+
+resource "hcloud_network_subnet" "cp-subnet" {
+  network_id   = hcloud_network.cp-network.id
+  type         = "cloud"
+  network_zone = "us-west"
+  ip_range     = "10.0.1.0/24"
+}
+
+resource "hcloud_server_network" "cp-server-network" {
+  count      = var.instances
+  server_id  = hcloud_server.cp-server[count.index].id
+  network_id = hcloud_network.cp-network.id
+  ip         = "10.0.1.5"
 }
 
 
@@ -91,6 +98,6 @@ output "app_servers_status" {
 output "app_servers_ips" {
   value = {
     for server in hcloud_server.cp-server :
-    server.name => server.ipv6_address
+    server.name => server.ipv4_address
   }
 }

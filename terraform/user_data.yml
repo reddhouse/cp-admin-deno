@@ -1,11 +1,12 @@
 #cloud-config
 users:
-  - name: devops
+  - name: jmt
     groups: users, admin
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
-    ssh_authorized_keys:
-      - ssh-rsa <key>
+    lock_passwd: true
+    ssh-authorized-keys:
+      - ${jmt-mac-mini-key}
 package_update: true
 package_upgrade: true
 packages:

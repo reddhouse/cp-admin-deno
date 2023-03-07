@@ -1,34 +1,39 @@
 #cloud-config
 users:
   - name: jmt
+    # Add this user to the following groups.
     groups: users, admin
+    # Allow this user to run sudo for all commands, without entering a password.
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
+    # Disable password login.
     lock_passwd: true
-    ssh-authorized-keys:
+    ssh_authorized_keys:
       - ${jmt-mac-mini-key}
 package_update: true
 package_upgrade: true
 packages:
   - nginx
-  # - fail2ban
-  # - ufw
+  - fail2ban
+  - ufw
 runcmd:
   - systemctl enable nginx
-  # - ufw allow 'Nginx HTTP'
-  # - printf "[sshd]\nenabled = true\nbanaction = iptables-multiport" > /etc/fail2ban/jail.local
-  # - systemctl enable fail2ban
-  # - systemctl start fail2ban
-  # - ufw allow 'OpenSSH'
-  # - ufw enable
-  # - sed -ie '/^PermitRootLogin/s/^.*$/PermitRootLogin no/' /etc/ssh/sshd_config
-  # - sed -ie '/^PasswordAuthentication/s/^.*$/PasswordAuthentication no/' /etc/ssh/sshd_config
-  # - sed -ie '/^X11Forwarding/s/^.*$/X11Forwarding no/' /etc/ssh/sshd_config
-  # - sed -ie '/^#MaxAuthTries/s/^.*$/MaxAuthTries 2/' /etc/ssh/sshd_config
-  # - sed -ie '/^#AllowTcpForwarding/s/^.*$/AllowTcpForwarding no/' /etc/ssh/sshd_config
-  # - sed -ie '/^#AllowAgentForwarding/s/^.*$/AllowAgentForwarding no/' /etc/ssh/sshd_config
-  # - sed -ie '/^#AuthorizedKeysFile/s/^.*$/AuthorizedKeysFile .ssh/authorized_keys/' /etc/ssh/sshd_config
-  # - sed -i '$a AllowUsers devops' /etc/ssh/sshd_config
-  # - systemctl restart ssh
-  # - rm /var/www/html/*
-  # - echo "Hello! I am Nginx @ $(curl -s ipinfo.io/ip)! This record added at $(date -u)." >>/var/www/html/index.html
+  # Nginx Full will open both port 80 (normal, unencrypted web traffic) and port 443 (TLS/SSL encrypted traffic).
+  - ufw allow 'Nginx Full'
+  # Local Fail2ban settings can be put in jail.local file. Note, the jail.conf file will be periodically updated as Fail2ban itself is updated, and will be used as a source of default settings for which you have not created any overrides.
+  - printf "[sshd]\nenabled = true\nbanaction = iptables-multiport" > /etc/fail2ban/jail.local
+  - systemctl enable fail2ban
+  - systemctl start fail2ban
+  - ufw allow 'OpenSSH'
+  - ufw enable
+  - sed -ie '/^PermitRootLogin/s/^.*$/PermitRootLogin no/' /etc/ssh/sshd_config
+  - sed -ie '/^PasswordAuthentication/s/^.*$/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -ie '/^X11Forwarding/s/^.*$/X11Forwarding no/' /etc/ssh/sshd_config
+  - sed -ie '/^#MaxAuthTries/s/^.*$/MaxAuthTries 2/' /etc/ssh/sshd_config
+  - sed -ie '/^#AllowTcpForwarding/s/^.*$/AllowTcpForwarding no/' /etc/ssh/sshd_config
+  - sed -ie '/^#AllowAgentForwarding/s/^.*$/AllowAgentForwarding no/' /etc/ssh/sshd_config
+  - sed -ie '/^#AuthorizedKeysFile/s/^.*$/AuthorizedKeysFile .ssh/authorized_keys/' /etc/ssh/sshd_config
+  - sed -i '$a AllowUsers jmt' /etc/ssh/sshd_config
+  - systemctl restart ssh
+  - rm /var/www/html/*
+  - echo "Hello! I am Nginx @ $(curl -s ipinfo.io/ip)! This record added at $(date -u)." >>/var/www/html/index.html

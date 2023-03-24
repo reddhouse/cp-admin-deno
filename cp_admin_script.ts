@@ -1,5 +1,5 @@
 // Run this script with...
-// deno run --allow-env --allow-read --allow-run cp_admin_script.ts
+// deno run --allow-env --allow-read --allow-run --allow-net cp_admin_script.ts
 
 import "https://deno.land/std@0.178.0/dotenv/load.ts";
 import {
@@ -8,6 +8,7 @@ import {
   red,
   yellow,
 } from "https://deno.land/std@0.178.0/fmt/colors.ts";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const runCommands = async (commands: string[]) => {
   const p = Deno.run({ cwd: "./terraform", cmd: commands });
@@ -54,6 +55,7 @@ const menu: { [key: string]: string } = {
   "5": "Terraform Apply",
   "6": "Set IP Address",
   "7": "SSH",
+  "97": "Send test email",
   "98": "Terraform Destroy",
   "99": "Remove Known Host",
 };
@@ -107,6 +109,34 @@ const handleAction = async (selection: string) => {
     // SSH into Remote Host
     case "7": {
       await runCommands(["ssh", `jmt@${ipAddress}`]);
+      break;
+    }
+    // Email test
+    case "97": {
+      const client = new SMTPClient({
+        connection: {
+          hostname: "smtp.mail.me.com",
+          port: 587,
+          tls: true,
+          auth: {
+            username: `${Deno.env.get("ICLOUD_MAIL_PRIMARY_USER")}`,
+            password: `${Deno.env.get("ICLOUD_MAIL_PASSWORD")}`,
+          },
+        },
+      });
+      try {
+        await client.send({
+          from: `${Deno.env.get("ICLOUD_MAIL_PRIMARY_USER")}`,
+          to: `${Deno.env.get("ICLOUD_MAIL_TEST_RECIPIENT")}`,
+          subject: "An email sent from deno",
+          content: "Here is the plain text content of this awesome email.",
+          html: "<p>Here is the html content of this awesome email.</p>",
+        });
+        await client.close();
+      } catch (error) {
+        console.log("Error sending email:", error);
+      }
+
       break;
     }
     // Terraform Destroy

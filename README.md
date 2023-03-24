@@ -1,2 +1,2 @@
 # cooperative-admin
-Administrative dev tools for cooperative.party
+Administrative dev tools for the Cooperative Party.

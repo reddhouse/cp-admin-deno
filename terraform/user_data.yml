@@ -10,12 +10,34 @@ users:
     lock_passwd: true
     ssh_authorized_keys:
       - ${jmt-mac-mini-key}
+write_files:
+  - path: /etc/nginx/sites-available/deno
+    content: |
+      server {
+          server_name 5.78.98.38;
+          listen 80;
+          location / {
+              proxy_set_header   X-Forwarded-For $remote_addr;
+              proxy_set_header   Host $http_host;
+              proxy_pass         "http://127.0.0.1:8000";
+          }
+      }
+    owner: "nginx:nginx"
+    permissions: "0640"
+    defer: true
+  - path: /etc/skel/.bashrc
+    content: |
+      export DENO_INSTALL="/.deno"
+      export PATH="$DENO_INSTALL/bin:$PATH"
+    append: true
+    defer: false
 package_update: true
 package_upgrade: true
 packages:
   - nginx
   - fail2ban
   - ufw
+  - unzip
 runcmd:
   - systemctl enable nginx
   # Nginx Full will open both port 80 (normal, unencrypted web traffic) and port 443 (TLS/SSL encrypted traffic).
@@ -35,5 +57,4 @@ runcmd:
   - sed -ie '/^#AuthorizedKeysFile/s/^.*$/AuthorizedKeysFile .ssh/authorized_keys/' /etc/ssh/sshd_config
   - sed -i '$a AllowUsers jmt' /etc/ssh/sshd_config
   - systemctl restart ssh
-  - rm /var/www/html/*
-  - echo "Hello! I am Nginx @ $(curl -s ipinfo.io/ip)! This record added at $(date -u)." >>/var/www/html/index.html
+  - curl -fsSL https://deno.land/x/install/install.sh | sh

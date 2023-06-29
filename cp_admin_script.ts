@@ -10,36 +10,42 @@ import {
 } from "https://deno.land/std@0.178.0/fmt/colors.ts";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
-const runCommands = async (commands: string[]) => {
-  const p = Deno.run({ cwd: "./terraform", cmd: commands });
-  const { code } = await p.status();
-  console.log(yellow(`Process ${p.pid} exited with code ${code}.`));
+const runCommands = async (cwd: string, cmd: string, args: string[]) => {
+  const command = new Deno.Command(cmd, {
+    cwd,
+    args,
+    stdout: "inherit",
+    stderr: "inherit",
+  });
+  const child = command.spawn();
+  const { code } = await child.status;
+  console.log(yellow(`Process ${child.pid} exited with code ${code}.`));
 };
 
 const runPipedCommands = async (
-  commands: string[],
+  cwd: string,
+  cmd: string,
+  args: string[],
   setOutput: (x: string) => void
 ) => {
-  const p = Deno.run({
-    cwd: "./terraform",
-    cmd: commands,
+  const command = new Deno.Command(cmd, {
+    cwd,
+    args,
     stdout: "piped",
     stderr: "piped",
   });
-
-  const { code } = await p.status();
-  const rawOutput = await p.output();
-  const rawError = await p.stderrOutput();
+  const child = command.spawn();
+  const { code, stdout, stderr } = await command.output();
 
   if (code === 0) {
-    const successString = new TextDecoder().decode(rawOutput);
+    const successString = new TextDecoder().decode(stdout);
     setOutput(successString);
-    console.log(yellow(`Process ${p.pid} exited with code ${code}.`));
+    console.log(yellow(`Process ${child.pid} exited with code ${code}.`));
   } else {
-    const errorString = new TextDecoder().decode(rawError);
+    const errorString = new TextDecoder().decode(stderr);
     setOutput(errorString);
     console.log(errorString);
-    console.log(red(`Process ${p.pid} exited with code ${code}.`));
+    console.log(red(`Process ${child.pid} exited with code ${code}.`));
   }
 };
 
@@ -64,23 +70,22 @@ const handleAction = async (selection: string) => {
   switch (selection) {
     // Terraform Init
     case "1": {
-      await runCommands(["terraform", "init"]);
+      await runCommands("./terraform", "terraform", ["init"]);
       break;
     }
     // Terraform Format
     case "2": {
-      await runCommands(["terraform", "fmt"]);
+      await runCommands("./terraform", "terraform", ["fmt"]);
       break;
     }
     // Terraform Validate
     case "3": {
-      await runCommands(["terraform", "validate"]);
+      await runCommands("./terraform", "terraform", ["validate"]);
       break;
     }
     // Terraform Plan
     case "4": {
-      await runCommands([
-        "terraform",
+      await runCommands("./terraform", "terraform", [
         "plan",
         `-var=hcloud_token=${Deno.env.get("HETZNER_API_TOKEN")}`,
       ]);
@@ -88,8 +93,7 @@ const handleAction = async (selection: string) => {
     }
     // Terraform Apply
     case "5": {
-      await runCommands([
-        "terraform",
+      await runCommands("./terraform", "terraform", [
         "apply",
         `-var=hcloud_token=${Deno.env.get("HETZNER_API_TOKEN")}`,
       ]);
@@ -101,14 +105,16 @@ const handleAction = async (selection: string) => {
         ipAddress = x;
       };
       await runPipedCommands(
-        ["terraform", "output", "-raw", "coopar-server-1-ip"],
+        "./terraform",
+        "terraform",
+        ["output", "-raw", "coopar-server-1-ip"],
         setIpAddress
       );
       break;
     }
     // SSH into Remote Host
     case "7": {
-      await runCommands(["ssh", `jmt@${ipAddress}`]);
+      await runCommands("./", "ssh", [`jmt@${ipAddress}`]);
       break;
     }
     // Email test
@@ -146,12 +152,13 @@ const handleAction = async (selection: string) => {
         ipAddress = x;
       };
       await runPipedCommands(
-        ["terraform", "output", "-raw", "coopar-server-1-ip"],
+        "./terraform",
+        "terraform",
+        ["output", "-raw", "coopar-server-1-ip"],
         setIpAddress
       );
       // Second, process with spinning down Hetzner resources.
-      await runCommands([
-        "terraform",
+      await runCommands("./terraform", "terraform", [
         "destroy",
         `-var=hcloud_token=${Deno.env.get("HETZNER_API_TOKEN")}`,
       ]);
@@ -159,7 +166,7 @@ const handleAction = async (selection: string) => {
     }
     // Remove Known Host (after terraform destroy)
     case "99": {
-      await runCommands(["ssh-keygen", "-R", ipAddress]);
+      await runCommands("./", "ssh-keygen", ["-R", ipAddress]);
       break;
     }
 

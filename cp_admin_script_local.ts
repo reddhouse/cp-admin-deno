@@ -7,6 +7,7 @@ import {
   green,
   red,
   yellow,
+  blue,
 } from "https://deno.land/std@0.178.0/fmt/colors.ts";
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
@@ -60,7 +61,8 @@ const menu: { [key: string]: string } = {
   "4": "Terraform Plan",
   "5": "Terraform Apply",
   "6": "Set IP Address",
-  "7": "SSH",
+  "7": "Print Remote Commands",
+  "8": "SSH",
   "97": "Send test email",
   "98": "Terraform Destroy",
   "99": "Remove Known Host",
@@ -112,8 +114,20 @@ const handleAction = async (selection: string) => {
       );
       break;
     }
-    // SSH into Remote Host
+    // Print remote commands for use during SSH
     case "7": {
+      console.log(
+        blue("git clone https://github.com/reddhouse/cooperative-admin.git \n")
+      );
+      console.log(
+        blue(
+          "deno run --allow-env --allow-read --allow-run --allow-net /home/jmt/cooperative-admin/cp_admin_script_remote.ts"
+        )
+      );
+      break;
+    }
+    // SSH into Remote Host
+    case "8": {
       await runCommands("./", "ssh", [`jmt@${ipAddress}`]);
       break;
     }

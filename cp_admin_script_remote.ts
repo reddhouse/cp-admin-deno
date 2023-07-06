@@ -61,7 +61,7 @@ const handleAction = async (selection: string) => {
   switch (selection) {
     // Do something.
     case "1": {
-      await runCommands("./home/jmt/", "echo", [
+      await runCommands("./", "echo", [
         "I am foobar message from remote script",
       ]);
       break;

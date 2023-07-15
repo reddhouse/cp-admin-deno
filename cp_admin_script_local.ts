@@ -1,7 +1,6 @@
 // Run this script with...
 // deno run --allow-env --allow-read --allow-run --allow-net cp_admin_script.ts
 
-import { writeAll } from "https://deno.land/std@0.194.0/streams/write_all.ts";
 import "https://deno.land/std@0.178.0/dotenv/load.ts";
 import {
   bold,
@@ -12,6 +11,7 @@ import {
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const runBashCommand = async (bashCommand: string) => {
+  const bashCommandBytes = new TextEncoder().encode(bashCommand);
   const command = new Deno.Command("bash", {
     stdin: "piped",
     stdout: "inherit",
@@ -19,13 +19,9 @@ const runBashCommand = async (bashCommand: string) => {
   });
   const child = command.spawn();
   const writer = await child.stdin.getWriter();
-
-  const contentBytes = new TextEncoder().encode(bashCommand);
-
-  writer.write(contentBytes);
+  writer.write(bashCommandBytes);
   writer.releaseLock();
   await child.stdin.close();
-
   const { code } = await child.status;
   console.log(yellow(`Process ${child.pid} exited with code ${code}.`));
 };

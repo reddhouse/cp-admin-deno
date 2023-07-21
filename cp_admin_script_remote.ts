@@ -178,7 +178,7 @@ const handleAction = async (selection: string) => {
     // Do something (Test).
     case "99": {
       await runBashCommand(`echo $DENO_DEPLOYMENT_ID`, {
-        DENO_DEPLOYMENT_ID: coopWebCommitHash,
+        DENO_DEPLOYMENT_ID: coopWebCommitHash || "",
       });
       break;
     }

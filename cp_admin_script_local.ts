@@ -81,9 +81,10 @@ const menu: { [key: string]: string } = {
   "3": "Terraform Validate",
   "4": "Terraform Plan",
   "5": "Terraform Apply",
-  "6": "Set IP Address",
-  "7": "Copy Remote Commands to Clipboard",
-  "8": "SSH (exit session with 'exit')",
+  "6": "Set IP Address (EVERY SESSION)",
+  "7": "Copy two commands to clipboard to use in FIRST SSH session",
+  "8": "Copy only remote script command to use in follow-up SSH sessions",
+  "9": "SSH (exit session with 'exit')",
   "97": "Send test email",
   "98": "Terraform Destroy",
   "99": "Remove Known Host",
@@ -135,15 +136,22 @@ const handleAction = async (selection: string) => {
       );
       break;
     }
-    // Copy remote commands to clipboard for use during SSH
+    // Copy two commands to clipboard to use in FIRST SSH session
     case "7": {
       await runBashCommand(
         `echo "git clone https://github.com/reddhouse/cooperative-admin.git && deno run --allow-env --allow-read --allow-run --allow-net /home/jmt/cooperative-admin/cp_admin_script_remote.ts" | pbcopy`
       );
       break;
     }
-    // SSH into Remote Host
+    // Copy only remote script command to use in follow-up SSH sessions
     case "8": {
+      await runBashCommand(
+        `echo "deno run --allow-env --allow-read --allow-run --allow-net /home/jmt/cooperative-admin/cp_admin_script_remote.ts" | pbcopy`
+      );
+      break;
+    }
+    // SSH into Remote Host
+    case "9": {
       await runExecutableCommand("./", "ssh", [`jmt@${ipAddress}`]);
       break;
     }

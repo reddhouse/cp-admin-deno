@@ -88,9 +88,9 @@ const menu: { [key: string]: string } = {
   "3": "Restart nginx service",
   "4": "Git clone cooperative-web",
   "5": "Delete deno.lock file",
-  "6": "Grab git commit hash to use in script",
+  "6": "Grab git commit hash to use in subsequent commands (EVERY SESSION)",
   "7": "Cache main.ts (before Fresh deployment)",
-  "8": "Run Fresh app!",
+  "8": "Run Fresh app, back-grounded, and disowned",
   "20": "Pull latest cooperative-admin code",
   "21": "Pull latest cooperative-web code",
   "99": "Test with echo",
@@ -154,7 +154,7 @@ const handleAction = async (selection: string) => {
       );
       break;
     }
-    // Run Fresh app!
+    // Run Fresh app in background (&), and disowned!
     case "8": {
       await runBashCommand(
         "/home/jmt/cooperative-web",

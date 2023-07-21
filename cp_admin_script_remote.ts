@@ -156,7 +156,7 @@ const handleAction = async (selection: string) => {
     }
     // Do something (Test).
     case "99": {
-      await runExecutableCommand("./", "echo", ["$DENO_DEPLOYMENT_ID"]);
+      await runBashCommand(`echo $DENO_DEPLOYMENT_ID`);
       break;
     }
     default:

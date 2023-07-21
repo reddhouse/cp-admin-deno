@@ -129,7 +129,7 @@ const handleAction = async (selection: string) => {
       await runPipedCommand(
         "./",
         "git",
-        ["-C", "/home/jmt/cooperative-web rev-parse HEAD"],
+        ["-C", "/home/jmt/cooperative-web", "rev-parse", "HEAD"],
         setCommitHash
       );
       break;

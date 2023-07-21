@@ -10,11 +10,13 @@ import {
 } from "https://deno.land/std@0.178.0/fmt/colors.ts";
 
 const runBashCommand = async (
+  cwd: string,
   bashCommand: string,
   env?: Record<string, string>
 ) => {
   const bashCommandBytes = new TextEncoder().encode(bashCommand);
   const command = new Deno.Command("bash", {
+    cwd,
     env,
     stdin: "piped",
     stdout: "inherit",
@@ -98,19 +100,20 @@ const handleAction = async (selection: string) => {
   switch (selection) {
     // Delete nginx's default-enabled sites.
     case "1": {
-      await runBashCommand(`sudo rm /etc/nginx/sites-enabled/default`);
+      await runBashCommand("./", `sudo rm /etc/nginx/sites-enabled/default`);
       break;
     }
     // Enable deno site in nginx (pre-configured in cloud-config).
     case "2": {
       await runBashCommand(
+        "./",
         `sudo ln -s /etc/nginx/sites-available/deno /etc/nginx/sites-enabled/deno`
       );
       break;
     }
     // Delete nginx's default-enabled sites.
     case "3": {
-      await runBashCommand(`sudo service nginx restart`);
+      await runBashCommand("./", `sudo service nginx restart`);
       break;
     }
     // Git clone cooperative-web.
@@ -123,7 +126,7 @@ const handleAction = async (selection: string) => {
     }
     // Delete deno.lock file.
     case "5": {
-      await runBashCommand(`rm /home/jmt/cooperative-web/deno.lock`);
+      await runBashCommand("./", `rm /home/jmt/cooperative-web/deno.lock`);
       break;
     }
     // Grab git commit hash to use in script.
@@ -153,10 +156,9 @@ const handleAction = async (selection: string) => {
     }
     // Run Fresh app!
     case "8": {
-      await runExecutableCommand(
+      await runBashCommand(
         "/home/jmt/cooperative-web",
-        "deno",
-        ["run", "--allow-env", "--allow-read", "--allow-net", "main.ts"],
+        `deno run --allow-env --allow-read --allow-net main.ts & disown`,
         {
           DENO_DEPLOYMENT_ID: coopWebCommitHash,
         }
@@ -177,7 +179,7 @@ const handleAction = async (selection: string) => {
     }
     // Do something (Test).
     case "99": {
-      await runBashCommand(`echo $DENO_DEPLOYMENT_ID`, {
+      await runBashCommand("./", `echo $DENO_DEPLOYMENT_ID`, {
         DENO_DEPLOYMENT_ID: coopWebCommitHash || "",
       });
       break;

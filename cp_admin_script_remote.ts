@@ -81,6 +81,7 @@ const menu: { [key: string]: string } = {
   "8": "Run Fresh app!",
   "20": "Pull latest cooperative-admin code",
   "21": "Pull latest cooperative-web code",
+  "99": "Test with echo",
 };
 
 const handleAction = async (selection: string) => {
@@ -124,12 +125,15 @@ const handleAction = async (selection: string) => {
     }
     // Cache main.ts (before Fresh deployment).
     case "7": {
-      await runExecutableCommand("./", "deno", ["cache", "main.ts"]);
+      await runExecutableCommand("/home/jmt/cooperative-web", "deno", [
+        "cache",
+        "main.ts",
+      ]);
       break;
     }
     // Run Fresh app!
     case "8": {
-      await runExecutableCommand("./", "deno", [
+      await runExecutableCommand("/home/jmt/cooperative-web", "deno", [
         "run",
         "--allow-env",
         "--allow-read",
@@ -150,7 +154,7 @@ const handleAction = async (selection: string) => {
       await runExecutableCommand("/home/jmt/cooperative-web", "git", ["pull"]);
       break;
     }
-    // Do something.
+    // Do something (Test).
     case "99": {
       await runExecutableCommand("./", "echo", [
         "I am foobar message from remote script",

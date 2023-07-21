@@ -156,9 +156,7 @@ const handleAction = async (selection: string) => {
     }
     // Do something (Test).
     case "99": {
-      await runExecutableCommand("./", "echo", [
-        "I am foobar message from remote script, and DENO_DEPLOYMENT_ID= $DENO_DEPLOYMENT_ID",
-      ]);
+      await runExecutableCommand("./", "echo", ["$DENO_DEPLOYMENT_ID"]);
       break;
     }
     default:

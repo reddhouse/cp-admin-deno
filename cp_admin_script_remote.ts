@@ -5,12 +5,17 @@ import "https://deno.land/std@0.178.0/dotenv/load.ts";
 import {
   bold,
   green,
+  red,
   yellow,
 } from "https://deno.land/std@0.178.0/fmt/colors.ts";
 
-const runBashCommand = async (bashCommand: string) => {
+const runBashCommand = async (
+  bashCommand: string,
+  env?: Record<string, string>
+) => {
   const bashCommandBytes = new TextEncoder().encode(bashCommand);
   const command = new Deno.Command("bash", {
+    env,
     stdin: "piped",
     stdout: "inherit",
     stderr: "inherit",
@@ -27,11 +32,13 @@ const runBashCommand = async (bashCommand: string) => {
 const runExecutableCommand = async (
   cwd: string,
   cmd: string,
-  args: string[]
+  args: string[],
+  env?: Record<string, string>
 ) => {
   const command = new Deno.Command(cmd, {
     cwd,
     args,
+    env,
     stdin: "inherit",
     stdout: "inherit",
     stderr: "inherit",
@@ -41,33 +48,36 @@ const runExecutableCommand = async (
   console.log(yellow(`Process ${child.pid} exited with code ${code}.`));
 };
 
-// const runPipedCommand = async (
-//   cwd: string,
-//   cmd: string,
-//   args: string[],
-//   setOutput: (x: string) => void
-// ) => {
-//   const command = new Deno.Command(cmd, {
-//     cwd,
-//     args,
-//     stdin: "inherit",
-//     stdout: "piped",
-//     stderr: "piped",
-//   });
-//   const child = command.spawn();
-//   const { code, stdout, stderr } = await command.output();
+const runPipedCommand = async (
+  cwd: string,
+  cmd: string,
+  args: string[],
+  setOutput: (x: string) => void
+) => {
+  const command = new Deno.Command(cmd, {
+    cwd,
+    args,
+    stdin: "inherit",
+    stdout: "piped",
+    stderr: "piped",
+  });
+  const child = command.spawn();
+  const { code, stdout, stderr } = await command.output();
 
-//   if (code === 0) {
-//     const successString = new TextDecoder().decode(stdout);
-//     setOutput(successString);
-//     console.log(yellow(`Process ${child.pid} exited with code ${code}.`));
-//   } else {
-//     const errorString = new TextDecoder().decode(stderr);
-//     setOutput(errorString);
-//     console.log(errorString);
-//     console.log(red(`Process ${child.pid} exited with code ${code}.`));
-//   }
-// };
+  if (code === 0) {
+    const successString = new TextDecoder().decode(stdout);
+    setOutput(successString);
+    console.log(yellow(`Process ${child.pid} exited with code ${code}.`));
+  } else {
+    const errorString = new TextDecoder().decode(stderr);
+    setOutput(errorString);
+    console.log(errorString);
+    console.log(red(`Process ${child.pid} exited with code ${code}.`));
+  }
+};
+
+// Global variables to use throughout this session.
+let coopWebCommitHash: string;
 
 const menu: { [key: string]: string } = {
   "0": "Exit",
@@ -76,7 +86,7 @@ const menu: { [key: string]: string } = {
   "3": "Restart nginx service",
   "4": "Git clone cooperative-web",
   "5": "Delete deno.lock file",
-  "6": "Set Deno Deployment ID (env variable) for Fresh (Git commit hash)",
+  "6": "Grab git commit hash to use in script",
   "7": "Cache main.ts (before Fresh deployment)",
   "8": "Run Fresh app!",
   "20": "Pull latest cooperative-admin code",
@@ -116,30 +126,41 @@ const handleAction = async (selection: string) => {
       await runBashCommand(`rm /home/jmt/cooperative-web/deno.lock`);
       break;
     }
-    // Set Deno Deployment ID (env variable) for Fresh (Git commit hash).
+    // Grab git commit hash to use in script.
     case "6": {
-      await runBashCommand(
-        `export DENO_DEPLOYMENT_ID=$(git -C /home/jmt/cooperative-web rev-parse HEAD)`
+      const setCommitHash = (x: string) => {
+        coopWebCommitHash = x;
+      };
+      await runPipedCommand(
+        "./",
+        "git",
+        ["-C", "/home/jmt/cooperative-web", "rev-parse", "HEAD"],
+        setCommitHash
       );
       break;
     }
     // Cache main.ts (before Fresh deployment).
     case "7": {
-      await runExecutableCommand("/home/jmt/cooperative-web", "deno", [
-        "cache",
-        "main.ts",
-      ]);
+      await runExecutableCommand(
+        "/home/jmt/cooperative-web",
+        "deno",
+        ["cache", "main.ts"],
+        {
+          DENO_DEPLOYMENT_ID: coopWebCommitHash,
+        }
+      );
       break;
     }
     // Run Fresh app!
     case "8": {
-      await runExecutableCommand("/home/jmt/cooperative-web", "deno", [
-        "run",
-        "--allow-env",
-        "--allow-read",
-        "--allow-net",
-        "main.ts",
-      ]);
+      await runExecutableCommand(
+        "/home/jmt/cooperative-web",
+        "deno",
+        ["run", "--allow-env", "--allow-read", "--allow-net", "main.ts"],
+        {
+          DENO_DEPLOYMENT_ID: coopWebCommitHash,
+        }
+      );
       break;
     }
     // Pull down new changes in cooperative-admin.
@@ -156,7 +177,9 @@ const handleAction = async (selection: string) => {
     }
     // Do something (Test).
     case "99": {
-      await runBashCommand(`echo $DENO_DEPLOYMENT_ID`);
+      await runBashCommand(`echo $DENO_DEPLOYMENT_ID`, {
+        DENO_DEPLOYMENT_ID: coopWebCommitHash,
+      });
       break;
     }
     default:

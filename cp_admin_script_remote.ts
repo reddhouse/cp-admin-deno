@@ -5,7 +5,6 @@ import "https://deno.land/std@0.178.0/dotenv/load.ts";
 import {
   bold,
   green,
-  red,
   yellow,
 } from "https://deno.land/std@0.178.0/fmt/colors.ts";
 
@@ -42,36 +41,33 @@ const runExecutableCommand = async (
   console.log(yellow(`Process ${child.pid} exited with code ${code}.`));
 };
 
-const runPipedCommand = async (
-  cwd: string,
-  cmd: string,
-  args: string[],
-  setOutput: (x: string) => void
-) => {
-  const command = new Deno.Command(cmd, {
-    cwd,
-    args,
-    stdin: "inherit",
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const child = command.spawn();
-  const { code, stdout, stderr } = await command.output();
+// const runPipedCommand = async (
+//   cwd: string,
+//   cmd: string,
+//   args: string[],
+//   setOutput: (x: string) => void
+// ) => {
+//   const command = new Deno.Command(cmd, {
+//     cwd,
+//     args,
+//     stdin: "inherit",
+//     stdout: "piped",
+//     stderr: "piped",
+//   });
+//   const child = command.spawn();
+//   const { code, stdout, stderr } = await command.output();
 
-  if (code === 0) {
-    const successString = new TextDecoder().decode(stdout);
-    setOutput(successString);
-    console.log(yellow(`Process ${child.pid} exited with code ${code}.`));
-  } else {
-    const errorString = new TextDecoder().decode(stderr);
-    setOutput(errorString);
-    console.log(errorString);
-    console.log(red(`Process ${child.pid} exited with code ${code}.`));
-  }
-};
-
-// Global variables to use throughout this session.
-let coopWebCommitHash: string;
+//   if (code === 0) {
+//     const successString = new TextDecoder().decode(stdout);
+//     setOutput(successString);
+//     console.log(yellow(`Process ${child.pid} exited with code ${code}.`));
+//   } else {
+//     const errorString = new TextDecoder().decode(stderr);
+//     setOutput(errorString);
+//     console.log(errorString);
+//     console.log(red(`Process ${child.pid} exited with code ${code}.`));
+//   }
+// };
 
 const menu: { [key: string]: string } = {
   "0": "Exit",
@@ -80,10 +76,9 @@ const menu: { [key: string]: string } = {
   "3": "Restart nginx service",
   "4": "Git clone cooperative-web",
   "5": "Delete deno.lock file",
-  "6": "Grab git commit hash to use in script",
-  "7": "Set Deno Deployment ID (env variable) for Fresh (git commit hash)",
-  "8": "Cache main.ts (before Fresh deployment)",
-  "9": "Run Fresh app!",
+  "6": "Set Deno Deployment ID (env variable) for Fresh (Git commit hash)",
+  "7": "Cache main.ts (before Fresh deployment)",
+  "8": "Run Fresh app!",
   "20": "Pull latest cooperative-admin code",
   "21": "Pull latest cooperative-web code",
   "99": "Test with echo",
@@ -121,26 +116,15 @@ const handleAction = async (selection: string) => {
       await runBashCommand(`rm /home/jmt/cooperative-web/deno.lock`);
       break;
     }
-    // Grab git commit hash to use in script.
+    // Set Deno Deployment ID (env variable) for Fresh (Git commit hash).
     case "6": {
-      const setCommitHash = (x: string) => {
-        coopWebCommitHash = x;
-      };
-      await runPipedCommand(
-        "./",
-        "git",
-        ["-C", "/home/jmt/cooperative-web", "rev-parse", "HEAD"],
-        setCommitHash
+      await runBashCommand(
+        `export DENO_DEPLOYMENT_ID=$(git -C /home/jmt/cooperative-web rev-parse HEAD)`
       );
       break;
     }
-    // Set Deno Deployment ID (env variable) for Fresh (git commit hash).
-    case "7": {
-      Deno.env.set("DENO_DEPLOYMENT_ID", coopWebCommitHash);
-      break;
-    }
     // Cache main.ts (before Fresh deployment).
-    case "8": {
+    case "7": {
       await runExecutableCommand("/home/jmt/cooperative-web", "deno", [
         "cache",
         "main.ts",
@@ -148,7 +132,7 @@ const handleAction = async (selection: string) => {
       break;
     }
     // Run Fresh app!
-    case "9": {
+    case "8": {
       await runExecutableCommand("/home/jmt/cooperative-web", "deno", [
         "run",
         "--allow-env",
@@ -173,7 +157,7 @@ const handleAction = async (selection: string) => {
     // Do something (Test).
     case "99": {
       await runExecutableCommand("./", "echo", [
-        "I am foobar message from remote script",
+        "I am foobar message from remote script, and DENO_DEPLOYMENT_ID= $DENO_DEPLOYMENT_ID",
       ]);
       break;
     }

@@ -119,7 +119,7 @@ const handleAction = async (selection: string) => {
     // Set Deno Deployment ID (env variable) for Fresh (Git commit hash).
     case "6": {
       await runBashCommand(
-        `DENO_DEPLOYMENT_ID=$(git -C /home/jmt/cooperative-web rev-parse HEAD)`
+        `export DENO_DEPLOYMENT_ID=$(git -C /home/jmt/cooperative-web rev-parse HEAD)`
       );
       break;
     }

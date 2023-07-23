@@ -14,7 +14,7 @@ write_files:
   - path: /etc/nginx/sites-available/deno
     content: |
       server {
-          server_name 5.78.98.38;
+          server_name cooperativeparty.org www.cooperativeparty.org;
           listen 80;
           location / {
               proxy_set_header   X-Forwarded-For $remote_addr;

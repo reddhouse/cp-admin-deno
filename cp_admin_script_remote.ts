@@ -180,7 +180,7 @@ const handleAction = async (selection: string) => {
     case "21": {
       console.log(
         blue(
-          "Exit from this script and run...\nsudo certbot --nginx,\nsudo certbot renew --dry-run"
+          "Exit from this script and run...\nsudo certbot --nginx\nsudo certbot renew --dry-run"
         )
       );
       break;

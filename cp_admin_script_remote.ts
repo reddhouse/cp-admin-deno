@@ -185,11 +185,9 @@ const handleAction = async (selection: string) => {
       });
       const child = command.spawn();
       const reader = child.stdout.getReader();
-      const writer1 = child.stdin.getWriter();
-      const writer2 = child.stdin.getWriter();
-      const writer3 = child.stdin.getWriter();
 
       console.log("Writing to stdin (1)");
+      const writer1 = child.stdin.getWriter();
       const cmdBytes1 = new TextEncoder().encode(`sudo certbot --nginx\n`);
       await writer1.write(cmdBytes1);
       writer1.releaseLock();
@@ -197,6 +195,7 @@ const handleAction = async (selection: string) => {
       console.log(decoder.decode(r1.value));
 
       console.log("Writing to stdin (2)");
+      const writer2 = child.stdin.getWriter();
       const cmdBytes2 = new TextEncoder().encode(`reddhouse@gmail.com\n`);
       await writer2.write(cmdBytes2);
       writer2.releaseLock();
@@ -204,6 +203,7 @@ const handleAction = async (selection: string) => {
       console.log(decoder.decode(r2.value));
 
       console.log("Writing to stdin (3)");
+      const writer3 = child.stdin.getWriter();
       const cmdBytes3 = new TextEncoder().encode(`Y\n`);
       await writer3.write(cmdBytes3);
       writer2.releaseLock();

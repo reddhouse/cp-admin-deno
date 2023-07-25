@@ -188,11 +188,13 @@ const handleAction = async (selection: string) => {
       const reader = child.stdout.getReader();
       const decoder = new TextDecoder();
 
+      console.log("Preparing to write");
       writer.write(cmdBytes1);
       const r = await reader.read();
       if (!r.done) {
         console.log("Here is some output", decoder.decode(r.value));
       }
+      console.log("Done...", decoder.decode(r.value));
       writer.releaseLock();
       await child.stdin.close();
       const { code } = await child.status;

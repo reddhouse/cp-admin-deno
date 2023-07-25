@@ -177,7 +177,18 @@ const handleAction = async (selection: string) => {
     }
     // Get and install SSL certificates.
     case "21": {
-      await runExecutableCommand("./", "certbot", ["--nginx"]);
+      const cmdBytes1 = new TextEncoder().encode("sudo certbot --nginx");
+      const command = new Deno.Command("bash", { stdin: "piped" });
+      const child = command.spawn();
+      const writer = await child.stdin.getWriter();
+      const reader = await child.stdout.getReader();
+      writer.write(cmdBytes1);
+      const output1 = await reader.read();
+      console.log("Here is some output: ", output1);
+      writer.releaseLock();
+      await child.stdin.close();
+      const { code } = await child.status;
+      console.log(yellow(`Process ${child.pid} exited with code ${code}.`));
       break;
     }
     // Test automatic SSL cert renewal.

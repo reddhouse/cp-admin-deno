@@ -6,6 +6,7 @@ import {
   bold,
   green,
   red,
+  blue,
   yellow,
 } from "https://deno.land/std@0.178.0/fmt/colors.ts";
 
@@ -92,7 +93,7 @@ const menu: { [key: string]: string } = {
   "7": "Cache main.ts (before Fresh deployment)",
   "8": "Run Fresh app, back-grounded, and disowned",
   "20": "Install certbot && symlink",
-  "21": "Get and install SSL certificates",
+  "21": "Show two certbot commands to run as root",
   "30": "Pull latest cooperative-admin code",
   "31": "Pull latest cooperative-web code",
   "99": "Test with echo",
@@ -175,51 +176,13 @@ const handleAction = async (selection: string) => {
       );
       break;
     }
-    // Get and install SSL certificates.
+    // Show command to get and install SSL certificates + dry run automatic renewal.
     case "21": {
-      const decoder = new TextDecoder();
-      const command = new Deno.Command("bash", {
-        stdin: "piped",
-        stdout: "piped",
-        stderr: "piped",
-      });
-      const child = command.spawn();
-      const reader = child.stdout.getReader();
-
-      console.log("Writing to stdin (1)");
-      const writer1 = child.stdin.getWriter();
-      const cmdBytes1 = new TextEncoder().encode(`sudo certbot --nginx\n`);
-      await writer1.write(cmdBytes1);
-      writer1.releaseLock();
-      const r1 = await reader.read();
-      console.log(decoder.decode(r1.value));
-
-      console.log("Writing to stdin (2)");
-      const writer2 = child.stdin.getWriter();
-      const cmdBytes2 = new TextEncoder().encode(`reddhouse@gmail.com\n`);
-      await writer2.write(cmdBytes2);
-      writer2.releaseLock();
-      const r2 = await reader.read();
-      console.log(decoder.decode(r2.value));
-
-      console.log("Writing to stdin (3)");
-      const writer3 = child.stdin.getWriter();
-      const cmdBytes3 = new TextEncoder().encode(`Y\n`);
-      await writer3.write(cmdBytes3);
-      writer2.releaseLock();
-      const r3 = await reader.read();
-      console.log(decoder.decode(r3.value));
-
-      // await writer1.close();
-      // await writer2.close();
-
-      const { code } = await child.status;
-      console.log(yellow(`Process ${child.pid} exited with code ${code}.`));
-      break;
-    }
-    // Test automatic SSL cert renewal.
-    case "22": {
-      await runExecutableCommand("./", "certbot", ["renew", "--dry-run"]);
+      console.log(
+        blue(
+          `Exit from this script and run "sudo certbot --nginx", and "certbot renew --dry-run"`
+        )
+      );
       break;
     }
     // Pull down new changes in cooperative-admin.

@@ -35,6 +35,7 @@ package_update: true
 package_upgrade: true
 packages:
   - nginx
+  - snapd
   - fail2ban
   - ufw
   - unzip

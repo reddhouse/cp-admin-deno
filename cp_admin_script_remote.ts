@@ -91,8 +91,10 @@ const menu: { [key: string]: string } = {
   "6": "Grab git commit hash to use in subsequent commands (EVERY SESSION)",
   "7": "Cache main.ts (before Fresh deployment)",
   "8": "Run Fresh app, back-grounded, and disowned",
-  "20": "Pull latest cooperative-admin code",
-  "21": "Pull latest cooperative-web code",
+  "20": "Install certbot && symlink",
+  "21": "Get and install SSL certificates",
+  "30": "Pull latest cooperative-admin code",
+  "31": "Pull latest cooperative-web code",
   "99": "Test with echo",
 };
 
@@ -165,15 +167,33 @@ const handleAction = async (selection: string) => {
       );
       break;
     }
-    // Pull down new changes in cooperative-admin.
+    // Install certbot && symlink.
     case "20": {
+      await runBashCommand(
+        "./",
+        `sudo snap install --classic certbot && sudo ln -s /snap/bin/certbot /usr/bin/certbot`
+      );
+      break;
+    }
+    // Get and install SSL certificates.
+    case "21": {
+      await runExecutableCommand("./", "certbot", ["--nginx"]);
+      break;
+    }
+    // Test automatic SSL cert renewal.
+    case "22": {
+      await runExecutableCommand("./", "certbot", ["renew", "--dry-run"]);
+      break;
+    }
+    // Pull down new changes in cooperative-admin.
+    case "30": {
       await runExecutableCommand("/home/jmt/cooperative-admin", "git", [
         "pull",
       ]);
       break;
     }
     // Pull down new changes in cooperative-web.
-    case "21": {
+    case "31": {
       await runExecutableCommand("/home/jmt/cooperative-web", "git", ["pull"]);
       break;
     }

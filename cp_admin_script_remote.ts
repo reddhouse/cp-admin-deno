@@ -189,13 +189,14 @@ const handleAction = async (selection: string) => {
       const decoder = new TextDecoder();
 
       console.log("Preparing to write");
-      await writer.write(cmdBytes1);
+      writer.write(cmdBytes1);
+      writer.releaseLock();
       const r = await reader.read();
       if (!r.done) {
         console.log("Here is some output", decoder.decode(r.value));
       }
       console.log("Done...", decoder.decode(r.value));
-      writer.releaseLock();
+
       await child.stdin.close();
       const { code } = await child.status;
       console.log(yellow(`Process ${child.pid} exited with code ${code}.`));

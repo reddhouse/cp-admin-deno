@@ -178,7 +178,11 @@ const handleAction = async (selection: string) => {
     // Get and install SSL certificates.
     case "21": {
       const cmdBytes1 = new TextEncoder().encode("sudo certbot --nginx");
-      const command = new Deno.Command("bash", { stdin: "piped" });
+      const command = new Deno.Command("bash", {
+        stdin: "piped",
+        stdout: "piped",
+        stderr: "piped",
+      });
       const child = command.spawn();
       const writer = await child.stdin.getWriter();
       const reader = await child.stdout.getReader();

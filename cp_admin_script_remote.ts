@@ -184,11 +184,15 @@ const handleAction = async (selection: string) => {
         stderr: "piped",
       });
       const child = command.spawn();
-      const writer = await child.stdin.getWriter();
-      const reader = await child.stdout.getReader();
+      const writer = child.stdin.getWriter();
+      const reader = child.stdout.getReader();
+      const decoder = new TextDecoder();
+
       writer.write(cmdBytes1);
-      const output1 = await reader.read();
-      console.log("Here is some output: ", output1);
+      const r = await reader.read();
+      if (!r.done) {
+        console.log("Here is some output", decoder.decode(r.value));
+      }
       writer.releaseLock();
       await child.stdin.close();
       const { code } = await child.status;

@@ -177,27 +177,42 @@ const handleAction = async (selection: string) => {
     }
     // Get and install SSL certificates.
     case "21": {
-      const cmdBytes1 = new TextEncoder().encode("sudo certbot --nginx");
+      const decoder = new TextDecoder();
       const command = new Deno.Command("bash", {
         stdin: "piped",
         stdout: "piped",
         stderr: "piped",
       });
       const child = command.spawn();
-      const writer = child.stdin.getWriter();
       const reader = child.stdout.getReader();
-      const decoder = new TextDecoder();
+      const writer1 = child.stdin.getWriter();
+      const writer2 = child.stdin.getWriter();
+      const writer3 = child.stdin.getWriter();
 
-      console.log("Preparing to write");
-      writer.write(cmdBytes1);
-      writer.releaseLock();
-      const r = await reader.read();
-      if (!r.done) {
-        console.log("Here is some output", decoder.decode(r.value));
-      }
-      console.log("Done...", decoder.decode(r.value));
+      console.log("Writing to stdin (1)");
+      const cmdBytes1 = new TextEncoder().encode(`sudo certbot --nginx\n`);
+      await writer1.write(cmdBytes1);
+      writer1.releaseLock();
+      const r1 = await reader.read();
+      console.log(decoder.decode(r1.value));
 
-      await child.stdin.close();
+      console.log("Writing to stdin (2)");
+      const cmdBytes2 = new TextEncoder().encode(`reddhouse@gmail.com\n`);
+      await writer2.write(cmdBytes2);
+      writer2.releaseLock();
+      const r2 = await reader.read();
+      console.log(decoder.decode(r2.value));
+
+      console.log("Writing to stdin (3)");
+      const cmdBytes3 = new TextEncoder().encode(`Y\n`);
+      await writer3.write(cmdBytes3);
+      writer2.releaseLock();
+      const r3 = await reader.read();
+      console.log(decoder.decode(r3.value));
+
+      // await writer1.close();
+      // await writer2.close();
+
       const { code } = await child.status;
       console.log(yellow(`Process ${child.pid} exited with code ${code}.`));
       break;

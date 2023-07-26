@@ -6,6 +6,7 @@ import {
   bold,
   green,
   red,
+  blue,
   yellow,
 } from "https://deno.land/std@0.178.0/fmt/colors.ts";
 
@@ -177,53 +178,11 @@ const handleAction = async (selection: string) => {
     }
     // Show command to get and install SSL certificates + dry run automatic renewal.
     case "21": {
-      const command = new Deno.Command("bash", {
-        stdin: "piped",
-        stdout: "piped",
-        stderr: "piped",
-      });
-      const child = command.spawn();
-      const decoder = new TextDecoder();
-      const reader = child.stdout.getReader();
-      let writer;
-      let readResult;
-      let bytes;
-      let userInput;
-      let completed = false;
-
-      console.log("Writing to stdin");
-      writer = child.stdin.getWriter();
-      bytes = new TextEncoder().encode(`sudo certbot --nginx\n`);
-      await writer.write(bytes);
-      writer.releaseLock();
-
-      while (completed === false) {
-        readResult = await reader.read();
-        console.log(decoder.decode(readResult.value));
-        console.log("readResult done? =  ", readResult.done);
-        userInput = prompt("Enter a value (or 0 to exit)") ?? "0";
-        if (userInput == "0") {
-          completed = true;
-        } else {
-          console.log("Writing to stdin");
-          writer = child.stdin.getWriter();
-          bytes = new TextEncoder().encode(userInput);
-          await writer.write(bytes);
-          writer.releaseLock();
-        }
-      }
-
-      // await writer1.close();
-      // await writer2.close();
-
-      const { code } = await child.status;
-      console.log(yellow(`Process ${child.pid} exited with code ${code}.`));
-
-      // console.log(
-      //   blue(
-      //     "Exit from this script and run...\nsudo certbot --nginx\nsudo certbot renew --dry-run"
-      //   )
-      // );
+      console.log(
+        blue(
+          "Exit from this script and run...\nsudo certbot --nginx\nsudo certbot renew --dry-run"
+        )
+      );
       break;
     }
     // Pull down new changes in cooperative-admin.

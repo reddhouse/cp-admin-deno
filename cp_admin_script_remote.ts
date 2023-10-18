@@ -87,15 +87,15 @@ const menu: { [key: string]: string } = {
   "1": "Delete nginx's default-enabled sites",
   "2": "Enable deno site in nginx (pre-configured in cloud-config)",
   "3": "Restart nginx service",
-  "4": "Git clone cooperative-web",
+  "4": "Git clone cp-web-deno",
   "5": "Delete deno.lock file",
   "6": "Grab git commit hash to use in subsequent commands (EVERY SESSION)",
   "7": "Cache main.ts (before Fresh deployment)",
   "8": "Run Fresh app, back-grounded, and disowned",
   "20": "Install certbot && symlink",
   "21": "Show two certbot commands to run as root",
-  "30": "Pull latest cooperative-admin code",
-  "31": "Pull latest cooperative-web code",
+  "30": "Pull latest cp-admin-deno code",
+  "31": "Pull latest cp-web-deno code",
   "99": "Test with echo",
 };
 
@@ -119,17 +119,17 @@ const handleAction = async (selection: string) => {
       await runBashCommand("./", `sudo service nginx restart`);
       break;
     }
-    // Git clone cooperative-web.
+    // Git clone cp-web-deno.
     case "4": {
       await runExecutableCommand("/home/jmt", "git", [
         "clone",
-        "https://github.com/reddhouse/cooperative-web.git",
+        "https://github.com/reddhouse/cp-web-eno.git",
       ]);
       break;
     }
     // Delete deno.lock file.
     case "5": {
-      await runBashCommand("./", `rm /home/jmt/cooperative-web/deno.lock`);
+      await runBashCommand("./", `rm /home/jmt/cp-web-deno/deno.lock`);
       break;
     }
     // Grab git commit hash to use in script.
@@ -140,7 +140,7 @@ const handleAction = async (selection: string) => {
       await runPipedCommand(
         "./",
         "git",
-        ["-C", "/home/jmt/cooperative-web", "rev-parse", "HEAD"],
+        ["-C", "/home/jmt/cp-web-deno", "rev-parse", "HEAD"],
         setCommitHash
       );
       break;
@@ -148,7 +148,7 @@ const handleAction = async (selection: string) => {
     // Cache main.ts (before Fresh deployment).
     case "7": {
       await runExecutableCommand(
-        "/home/jmt/cooperative-web",
+        "/home/jmt/cp-web-deno",
         "deno",
         ["cache", "main.ts"],
         {
@@ -160,7 +160,7 @@ const handleAction = async (selection: string) => {
     // Run Fresh app in background (&), and disowned!
     case "8": {
       await runBashCommand(
-        "/home/jmt/cooperative-web",
+        "/home/jmt/cp-web-deno",
         `deno run --allow-env --allow-read --allow-net main.ts & disown`,
         {
           DENO_DEPLOYMENT_ID: coopWebCommitHash,
@@ -185,16 +185,14 @@ const handleAction = async (selection: string) => {
       );
       break;
     }
-    // Pull down new changes in cooperative-admin.
+    // Pull down new changes in cp-admin-deno.
     case "30": {
-      await runExecutableCommand("/home/jmt/cooperative-admin", "git", [
-        "pull",
-      ]);
+      await runExecutableCommand("/home/jmt/cp-admin-deno", "git", ["pull"]);
       break;
     }
-    // Pull down new changes in cooperative-web.
+    // Pull down new changes in cp-web-deno.
     case "31": {
-      await runExecutableCommand("/home/jmt/cooperative-web", "git", ["pull"]);
+      await runExecutableCommand("/home/jmt/cp-web-deno", "git", ["pull"]);
       break;
     }
     // Do something (Test).

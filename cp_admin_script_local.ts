@@ -1,5 +1,5 @@
 // Run this script with...
-// deno run --allow-env --allow-read --allow-run --allow-net cp_admin_script.ts
+// deno run --allow-env --allow-read --allow-run --allow-net cp_admin_script_local.ts
 
 import "https://deno.land/std@0.178.0/dotenv/load.ts";
 import {

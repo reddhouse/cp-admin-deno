@@ -1,2 +1,2 @@
-# cooperative-admin
-Administrative dev tools for the Cooperative Party.
+# cp-admin-deno
+Experimental administrative dev tools, no longer in use.
